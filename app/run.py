@@ -11,10 +11,16 @@ from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
-
 app = Flask(__name__)
 
 def tokenize(text):
+    '''
+    INPUT
+    text - text to be tokenized
+
+    OUTPUT
+    clean_tokens - list of tokens lemmatized and normalized
+    '''
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -26,25 +32,35 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('DisasterResponse', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
-
+model = joblib.load("../models/classifier.pkl")
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
-    
+    '''
+    OUTPUT
+    rendered web page with plotly graphs
+    '''
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
+    # message genres
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    # message categories
+    category_counts = df.drop(columns=['id', 'message', 'original', 'genre']).sum().sort_values(ascending=False)
+    category_names = list(category_counts.index)
+    
+    # changed (message column is different from original column)/unchanged Messages
+    unchanged_messages = len(df[(df['message'] == df['original']) | (df['original'].isnull())].index)
+    change_counts = [len(df.index) - unchanged_messages, unchanged_messages]
+    change_names = ['Changed', 'Unchanged']
+    
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -63,6 +79,42 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=change_names,
+                    y=change_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Changed (message column is different from original column)/Unchanged Messages',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Changed/Unchanged"
+                }
+            }
         }
     ]
     
@@ -73,10 +125,13 @@ def index():
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
 
-
 # web page that handles user query and displays model results
 @app.route('/go')
 def go():
+    '''
+    OUTPUT
+    rendered web page with classification results for messaged inputted
+    '''
     # save user input in query
     query = request.args.get('query', '') 
 
@@ -91,10 +146,8 @@ def go():
         classification_result=classification_results
     )
 
-
 def main():
     app.run(host='0.0.0.0', port=3001, debug=True)
-
 
 if __name__ == '__main__':
     main()
