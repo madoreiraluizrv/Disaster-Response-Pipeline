@@ -20,11 +20,11 @@ There should be no necessary libraries to run the code here beyond the Anaconda 
 
 ## File Descriptions <a name="files"></a>
 
+On app folder, there is run.py, a flask web app that takes care of data visualizations using plotly and uses the model from the pickle file to classify messages inputted by the user. Inside this folder, there is another folder (templates), with the web pages for the main page (master.html) and for the classification results page (go.html).
+
 On data folder, there is process_data.py that loads the messages and categories datasets, merges the two datasets, cleans the data and stores it in a SQLite database.
 
 On models folder, there is train_classifier.py that loads data from the SQLite database, splits the dataset into training and test sets, builds a text processing and machine learning pipeline, trains and tunes a model using GridSearchCV, outputs results on the test set and exports the final model as a pickle file.
-
-On app folder, there is run.py, a flask web app that takes care of data visualizations using plotly and uses the model from the pickle file to classify messages inputted by the user. Inside this folder, there is another folder (templates), with the web pages for the main page (master.html) and for the classification results page (go.html).
 
 ## How to Run<a name="how"></a>
 
