@@ -24,6 +24,15 @@ from sklearn.metrics import classification_report
 from sqlalchemy import create_engine
 
 def load_data(database_filepath):
+    '''
+    INPUT
+    datanbase_filepath - filepath for the database
+
+    OUTPUT
+    X - input for the model (messages)
+    Y - output for the model (categories)
+    Y.columns - list of categories names
+    '''
     # load data from database
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql("SELECT * FROM DisasterResponse", engine)
@@ -38,6 +47,13 @@ def load_data(database_filepath):
     return X, Y, Y.columns
 
 def tokenize(text):
+    '''
+    INPUT
+    text - text to be tokenized
+
+    OUTPUT
+    clean_tokens - list of tokens lemmatized and normalized
+    '''
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
     
@@ -49,6 +65,10 @@ def tokenize(text):
     return clean_tokens
 
 def build_model():
+    '''
+    OUTPUT
+    cv - machine learning model to be used
+    '''
     pipeline = Pipeline([
         ('features', FeatureUnion([
             ('count_pipeline', Pipeline([
@@ -64,15 +84,25 @@ def build_model():
     ])
 
     parameters = {
-            'features__count_pipeline__vect__ngram_range': ((1, 1), (1, 2)),
-            'features__count_pipeline__vect__max_df': (0.5, 0.75, 1.0)
+            'features__count_pipeline__tfidf__use_idf': (True, False),
+            'features__transformer_weights': (
+                {'count_pipeline': 1, 'hashing_pipeline': 0.5},
+                {'count_pipeline': 0.5, 'hashing_pipeline': 1},
+            )
         }
 
-    cv = GridSearchCV(pipeline, param_grid=parameters)
+    cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1)
     
     return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    '''
+    INPUT
+    model - machine learning model
+    X_test - input array for test
+    Y_test - true output for test
+    category_names - list of category names
+    '''
     Y_pred = model.predict(X_test)
     Y_pred = pd.DataFrame(Y_pred, columns=Y_test.columns)
 
@@ -81,6 +111,11 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print(classification_report(Y_test[category], Y_pred[category]))
 
 def save_model(model, model_filepath):
+    '''
+    INPUT
+    model - machine learning model
+    model_filepath - filepath for where to save the model
+    '''
     pickle.dump(model, open(model_filepath, 'wb'))
 
 def main():
