@@ -24,6 +24,8 @@ On data folder, there is process_data.py that loads the messages and categories 
 
 On models folder, there is train_classifier.py that loads data from the SQLite database, splits the dataset into training and test sets, builds a text processing and machine learning pipeline, trains and tunes a model using GridSearchCV, outputs results on the test set and exports the final model as a pickle file.
 
+On app folder, there is run.py, a flask web app that takes care of data visualizations using plotly and uses the model from the pickle file to classify messages inputted by the user. Inside this folder, there is another folder (templates), with the web pages for the main page (master.html) and for the classification results page (go.html).
+
 ## How to Run<a name="how"></a>
 
 1. Run the following commands in the project's root directory to set up your database and model.
@@ -36,7 +38,9 @@ On models folder, there is train_classifier.py that loads data from the SQLite d
 2. Run the following command in the app's directory to run your web app.
     `python run.py`
 
-3. Go to http://0.0.0.0:3001/
+3. Open another Terminal Window and run the following command.
+    `env|grep WORK`
+    You will see an output with values for spacedomain and spaceid. Use these values to go to https://SPACEID-3001.SPACEDOMAIN in a web broswer.
 
 ## Licensing, Authors, Acknowledgements<a name="licensing"></a>
 
